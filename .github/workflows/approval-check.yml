@@ -17,7 +17,7 @@ jobs:
 
       - name: Run SME and Quality Approval Check
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SAML_GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           # Both contexts should work, fallback for review events
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.pull_request_review.pull_request.number }}
