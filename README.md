@@ -1,18 +1,27 @@
-# SME and Quality Approval Workflow
+# SME and Quality Approval Check Workflow
 
-This repository enforces that:
+## What does this do?
 
-- At least **2 approvals from SME team members** are given before...
-- At least **1 approval from Quality team member**, which must be after the SMEs.
+This repository enforces a **multi-team approval process** for Pull Requests (PRs):
 
-Merges to `main` are only allowed when these rules are met.
+- **At least 2 approvals from SME team members**
+- **At least 1 approval from Quality team members**
+
+Merges into `main` are only allowed if both conditions are met, in addition to your branch protection rule that requires a total of 3 approvals and CODEOWNERS review.
+
+## How it works
+
+- A GitHub Actions workflow runs automatically on every PR review event.
+- The workflow uses a Python script (`scripts/check_approvals.py`) to check the latest review state for each reviewer.
+- The script counts approvals from each team (using team slugs).
+- If there are at least 2 SME and 1 Quality approvals, the check passes. Otherwise, it fails, blocking the merge.
 
 ## Setup
 
-- Update the `SME_TEAM` and `QUALITY_TEAM` env vars in `.github/workflows/approval-check.yml` to your real team slugs.
-- Make sure the workflow status check (`check-approvals`) is required in your branch protection rules.
+### 1. **Team Slugs**
 
-## Team Slugs
+Edit `.github/workflows/approval-check.yml` and update these lines with your correct GitHub team slugs:
 
-You can find team slugs in your organization at  
-`https://github.com/orgs/<org-name>/teams`
+```yaml
+SME_TEAM: 'sme-team'           # Change to your SME team slug
+QUALITY_TEAM: 'quality-team'   # Change to your Quality team slug
