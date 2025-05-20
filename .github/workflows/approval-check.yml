@@ -1,26 +1,25 @@
 name: SME and Quality Approval Check
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, review_requested, review_request_removed]
   pull_request_review:
-    types: [submitted, edited, dismissed]
+    types: [submitted, dismissed, edited]
+
+concurrency:
+  group: approval-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   check-approvals:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Install dependencies
         run: pip install requests
-
       - name: Run SME and Quality Approval Check
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SAML_GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          # Both contexts should work, fallback for review events
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.pull_request_review.pull_request.number }}
-          SME_TEAM: 'sme'           # <--- UPDATE with your actual SME team slug
-          QUALITY_TEAM: 'quality'   # <--- UPDATE with your actual Quality team slug
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SME_TEAM: 'sme-team'           # <-- Update with your actual SME team slug
+          QUALITY_TEAM: 'quality-team'   # <-- Update with your actual Quality team slug
         run: python scripts/check_approvals.py
