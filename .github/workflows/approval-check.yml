@@ -20,6 +20,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SAML_GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          SME_TEAM: 'sme-team'           # <-- Update with your actual SME team slug
-          QUALITY_TEAM: 'quality-team'   # <-- Update with your actual Quality team slug
+          SME_TEAM: 'sme'           # <-- Update with your actual SME team slug
+          QUALITY_TEAM: 'quality'   # <-- Update with your actual Quality team slug
         run: python scripts/check_approvals.py
