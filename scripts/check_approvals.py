@@ -2,11 +2,14 @@ import os
 import requests
 import sys
 
+MIN_SME_APPROVALS = 2
+MIN_QUALITY_APPROVALS = 1
+
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 REPO = os.getenv("GITHUB_REPOSITORY")
 PR_NUMBER = os.getenv("PR_NUMBER")
-SME_TEAM = os.getenv("SME_TEAM")            # e.g. 'sme-team'
-QUALITY_TEAM = os.getenv("QUALITY_TEAM")    # e.g. 'quality-team'
+SME_TEAM = os.getenv("SME_TEAM")
+QUALITY_TEAM = os.getenv("QUALITY_TEAM")
 ORG = REPO.split('/')[0]
 
 headers = {
@@ -39,45 +42,26 @@ def main():
     quality_members = get_team_members(QUALITY_TEAM)
     reviews = get_reviews()
 
-    # Track the latest approval for each user
-    approvals = {}
-    approval_events = []
+    # Keep only latest review state per user
+    latest_reviews = {}
     for review in reviews:
-        if review['state'] == 'APPROVED':
-            user = review['user']['login']
-            approvals[user] = review['submitted_at']
-            approval_events.append((review['submitted_at'], user))
+        user = review['user']['login']
+        latest_reviews[user] = review['state']
 
-    # Sort by approval time
-    approval_events.sort()
-    # Count SME approvals
-    sme_approvals = [user for _, user in approval_events if user in sme_members]
-    # Track first 2 SME approvals
-    first_2_sme = []
-    for user in sme_approvals:
-        if user not in first_2_sme:
-            first_2_sme.append(user)
-        if len(first_2_sme) == 2:
-            break
+    sme_approvals = set()
+    quality_approvals = set()
+    for user, state in latest_reviews.items():
+        if state == "APPROVED":
+            if user in sme_members:
+                sme_approvals.add(user)
+            if user in quality_members:
+                quality_approvals.add(user)
 
-    # Quality approval(s) that come after the first 2 SME approvals
-    if len(first_2_sme) < 2:
-        print("❌ Not enough SME approvals (need 2).")
-        sys.exit(1)
+    if len(sme_approvals) >= MIN_SME_APPROVALS and len(quality_approvals) >= MIN_QUALITY_APPROVALS:
+        print(f"✅ {len(sme_approvals)} SME approval(s) and {len(quality_approvals)} Quality approval(s). All requirements met.")
+        sys.exit(0)
     else:
-        # Find timestamp of second SME approval
-        second_sme_time = None
-        for time, user in approval_events:
-            if user == first_2_sme[1]:
-                second_sme_time = time
-                break
-
-        # Any quality approval after this?
-        for time, user in approval_events:
-            if user in quality_members and time > second_sme_time:
-                print("✅ Approval requirements met: 2 SME approvals and 1 Quality approval after SME.")
-                sys.exit(0)
-        print("❌ Need at least 1 Quality approval after 2 SME approvals.")
+        print(f"❌ Not enough approvals: {len(sme_approvals)} SME (need {MIN_SME_APPROVALS}), {len(quality_approvals)} Quality (need {MIN_QUALITY_APPROVALS}).")
         sys.exit(1)
 
 if __name__ == "__main__":
