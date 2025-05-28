@@ -1,4 +1,4 @@
-# SME and Quality Approval Workflow 3
+# SME and Quality Approval Workflow 4
 
 This repository enforces that:
 
