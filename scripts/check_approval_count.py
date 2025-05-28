@@ -44,18 +44,26 @@ def main():
 
     # Keep only latest review state per user
     latest_reviews = {}
+    from collections import OrderedDict
+
+    # GitHub reviews may not be in strict chronological order
+    # So we sort them by submitted_at timestamp
+    reviews.sort(key=lambda r: r.get('submitted_at', ''))
+
+    latest_reviews = {}
     for review in reviews:
+        print(f"{review['user']['login']} - {review['state']} - {review.get('submitted_at')}")
         user = review['user']['login']
-        latest_reviews[user] = review['state']
+        state = review['state']
+        # Always overwrite with the latest (sorted) review state
+        latest_reviews[user] = state
+
 
     sme_approvals = set()
     quality_approvals = set()
-    for user, state in latest_reviews.items():
-        if state == "APPROVED":
-            if user in sme_members:
-                sme_approvals.add(user)
-            if user in quality_members:
-                quality_approvals.add(user)
+    sme_approvals = {user for user, state in latest_reviews.items() if state == "APPROVED" and user in sme_members}
+    quality_approvals = {user for user, state in latest_reviews.items() if state == "APPROVED" and user in quality_members}
+
 
     if len(sme_approvals) >= MIN_SME_APPROVALS and len(quality_approvals) >= MIN_QUALITY_APPROVALS:
         print(f"✅ {len(sme_approvals)} SME approval(s) and {len(quality_approvals)} Quality approval(s). All requirements met.")
