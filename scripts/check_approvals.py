@@ -42,27 +42,36 @@ def main():
     quality_members = get_team_members(QUALITY_TEAM)
     reviews = get_reviews()
 
-    # Keep only latest review state per user
+    # Track latest review state per user
     latest_reviews = {}
+    sme_approvals = set()
+    quality_approval_after_sme = None
+
     for review in reviews:
         user = review['user']['login']
-        latest_reviews[user] = review['state']
+        state = review['state']
 
-    sme_approvals = set()
-    quality_approvals = set()
-    for user, state in latest_reviews.items():
         if state == "APPROVED":
-            if user in sme_members:
-                sme_approvals.add(user)
-            if user in quality_members:
-                quality_approvals.add(user)
+            latest_reviews[user] = "APPROVED"
+        elif state in ("CHANGES_REQUESTED", "DISMISSED"):
+            # Reset approval if user changes mind or is dismissed
+            latest_reviews[user] = state
 
-    if len(sme_approvals) >= MIN_SME_APPROVALS and len(quality_approvals) >= MIN_QUALITY_APPROVALS:
-        print(f"✅ {len(sme_approvals)} SME approval(s) and {len(quality_approvals)} Quality approval(s). All requirements met.")
+        # Count only if still considered approved later
+        temp_sme_approvals = {u for u, s in latest_reviews.items() if s == "APPROVED" and u in sme_members}
+        if user in quality_members and state == "APPROVED":
+            if len(temp_sme_approvals) >= MIN_SME_APPROVALS and latest_reviews[user] == "APPROVED":
+                quality_approval_after_sme = user
+
+        sme_approvals = temp_sme_approvals
+
+    if len(sme_approvals) >= MIN_SME_APPROVALS and quality_approval_after_sme:
+        print(f"✅ {len(sme_approvals)} SME approval(s) and 1 Quality approval from '{quality_approval_after_sme}' after SME approvals. All requirements met.")
         sys.exit(0)
     else:
-        print(f"❌ Not enough approvals: {len(sme_approvals)} SME (need {MIN_SME_APPROVALS}), {len(quality_approvals)} Quality (need {MIN_QUALITY_APPROVALS}).")
+        print(f"❌ Not enough approvals: {len(sme_approvals)} SME (need {MIN_SME_APPROVALS}), Quality approval after SME: {'yes' if quality_approval_after_sme else 'no'}.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
