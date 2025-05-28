@@ -2,13 +2,13 @@ name: All Required Checks
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, review_requested, edited]
+    types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
     types: [submitted, dismissed, edited]
-    
+
 concurrency:
   group: approval-check-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   check-approvals:
