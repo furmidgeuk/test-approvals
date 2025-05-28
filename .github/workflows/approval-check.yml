@@ -29,8 +29,8 @@ jobs:
           QUALITY_TEAM: 'quality'
         run: python scripts/check_approval_count.py
   check:
+    name: All Required Checks
     if: always()
-
     needs:
     - check-approvals
 
