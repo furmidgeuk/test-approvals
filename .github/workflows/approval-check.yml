@@ -3,6 +3,8 @@ name: SME and Quality Approval Check
 on:
   pull_request_review:
     types: [submitted, dismissed, edited]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 concurrency:
   group: approval-check-${{ github.event.pull_request.number }}
