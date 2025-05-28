@@ -1,13 +1,10 @@
 name: SME and Quality Approval Check
 
-name: SME and Quality Approval Check
-
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, review_requested, edited]
   pull_request_review:
     types: [submitted, dismissed, edited]
-
 
 jobs:
   check-approvals:
