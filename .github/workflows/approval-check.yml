@@ -1,4 +1,4 @@
-name: SME and Quality Approval Check
+name: All Required Checks
 
 on:
   pull_request:
