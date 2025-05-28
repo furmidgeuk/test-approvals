@@ -5,6 +5,10 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, review_requested, edited]
   pull_request_review:
     types: [submitted, dismissed, edited]
+    
+concurrency:
+  group: approval-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   check-approvals:
