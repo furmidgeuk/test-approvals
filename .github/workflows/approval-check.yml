@@ -4,24 +4,21 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize, review_requested, ready_for_review, edited]
 
-
-concurrency:
-  group: approval-check-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   check-approvals:
     name: SME and QA Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install dependencies
         run: pip install requests
+
       - name: Run SME and Quality Approval Check
         env:
           GITHUB_TOKEN: ${{ secrets.SAML_GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          SME_TEAM: 'sme'           # <-- Update with your actual SME team slug
-          QUALITY_TEAM: 'quality'   # <-- Update with your actual Quality team slug
+          SME_TEAM: 'sme'
+          QUALITY_TEAM: 'quality'
         run: python scripts/check_approvals.py
