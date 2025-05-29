@@ -28,9 +28,10 @@ jobs:
           SME_TEAM: 'sme'
           QUALITY_TEAM: 'quality'
         run: | 
-            python scripts/check_approval_count.py || true
-            echo "Simulating success for testing"
-            exit 0  
+            python scripts/check_approval_count.py
+            # python scripts/check_approval_count.py || true
+            # echo "Simulating success for testing"
+            # exit 0  
   check:
     name: All Required Checks
     if: always()
