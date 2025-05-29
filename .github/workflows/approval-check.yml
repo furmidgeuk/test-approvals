@@ -35,12 +35,16 @@ jobs:
     name: All Required Checks
     if: always()
     needs:
-    - check-approvals
-
+      - check-approvals
     runs-on: ubuntu-latest
 
     steps:
-    - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@release/v1
-      with:
-        jobs: ${{ toJSON(needs) }}
+      - name: Fail if any needed job did not succeed
+        if: needs.check-approvals.result != 'success'
+        run: |
+          echo "One or more required jobs failed."
+          exit 1
+
+      - name: All required checks passed
+        if: needs.check-approvals.result == 'success'
+        run: echo "All required jobs succeeded."
